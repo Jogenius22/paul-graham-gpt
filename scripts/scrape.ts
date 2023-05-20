@@ -200,3 +200,4 @@
 
 //   fs.writeFileSync("scripts/pg.json", JSON.stringify(json));
 // })();
+export {}
