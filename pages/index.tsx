@@ -1,7 +1,7 @@
 import { Answer } from "@/components/Answer/Answer";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
-import { PGChunk } from "@/types";
+import { PDFChunk } from "@/types";
 import { IconArrowRight, IconExternalLink, IconSearch } from "@tabler/icons-react";
 import endent from "endent";
 import Head from "next/head";
@@ -11,7 +11,7 @@ export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useState<string>("");
-  const [chunks, setChunks] = useState<PGChunk[]>([]);
+  const [chunks, setChunks] = useState<PDFChunk[]>([]);
   const [answer, setAnswer] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -35,29 +35,36 @@ export default function Home() {
     setChunks([]);
 
     setLoading(true);
+    try {
+      const searchResponse = await fetch("/api/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query, apiKey, matches: matchCount })
+      });
 
-    const searchResponse = await fetch("/api/search", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ query, apiKey, matches: matchCount })
-    });
+      if (!searchResponse.ok) {
+        console.error(searchResponse.statusText);
+        setAnswer("Sorry, something went wrong.");
+        setLoading(false);
+        return;
+      }
 
-    if (!searchResponse.ok) {
+      const results: PDFChunk[] = await searchResponse.json();
+
+      setChunks(results);
+
       setLoading(false);
-      throw new Error(searchResponse.statusText);
+
+      inputRef.current?.focus();
+
+      return results;
+    } catch (error) {
+      console.error(error);
+      setAnswer("Sorry, something went wrong.");
+      setLoading(false);
     }
-
-    const results: PGChunk[] = await searchResponse.json();
-
-    setChunks(results);
-
-    setLoading(false);
-
-    inputRef.current?.focus();
-
-    return results;
   };
 
   const handleAnswer = async () => {
@@ -75,63 +82,72 @@ export default function Home() {
     setChunks([]);
 
     setLoading(true);
+    try {
+      const searchResponse = await fetch("/api/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query, apiKey, matches: matchCount })
+      });
 
-    const searchResponse = await fetch("/api/search", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ query, apiKey, matches: matchCount })
-    });
+      if (!searchResponse.ok) {
+        console.error(searchResponse.statusText);
+        setAnswer("Sorry, something went wrong.");
+        setLoading(false);
+        return;
+      }
 
-    if (!searchResponse.ok) {
-      setLoading(false);
-      throw new Error(searchResponse.statusText);
-    }
+      const results: PDFChunk[] = await searchResponse.json();
 
-    const results: PGChunk[] = await searchResponse.json();
+      setChunks(results);
 
-    setChunks(results);
-
-    const prompt = endent`
-    Use the following passages to provide an answer to the query: "${query}"
+      const prompt = endent`
+    You are a helpful AI assistant. query: "${query}"
 
     ${results?.map((d: any) => d.content).join("\n\n")}
-    `;
+`;
 
-    const answerResponse = await fetch("/api/answer", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ prompt, apiKey })
-    });
+      const answerResponse = await fetch("/api/answer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt, query, apiKey })
+      });
 
-    if (!answerResponse.ok) {
+      if (!answerResponse.ok) {
+        console.error(answerResponse.statusText);
+        setAnswer("Sorry, something went wrong.");
+        setLoading(false);
+        return;
+      }
+
+      const data = answerResponse.body;
+
+      if (!data) {
+        return;
+      }
+
       setLoading(false);
-      throw new Error(answerResponse.statusText);
+
+      const reader = data.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value);
+        setAnswer((prev) => prev + chunkValue);
+      }
+
+      inputRef.current?.focus();
+    } catch (error) {
+      console.error(error);
+      setAnswer("Sorry, something went wrong.");
+      setLoading(false);
     }
-
-    const data = answerResponse.body;
-
-    if (!data) {
-      return;
-    }
-
-    setLoading(false);
-
-    const reader = data.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunkValue = decoder.decode(value);
-      setAnswer((prev) => prev + chunkValue);
-    }
-
-    inputRef.current?.focus();
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -357,22 +373,14 @@ export default function Home() {
                       <div className="mt-4 border border-zinc-600 rounded-lg p-4">
                         <div className="flex justify-between">
                           <div>
-                            <div className="font-bold text-xl">{chunk.essay_title}</div>
-                            <div className="mt-1 font-bold text-sm">{chunk.essay_date}</div>
+                            <div className="font-bold text-xl">Content</div> {/* Replace with appropriate title if available */}
                           </div>
-                          <a
-                            className="hover:opacity-50 ml-2"
-                            href={chunk.essay_url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            <IconExternalLink />
-                          </a>
                         </div>
                         <div className="mt-2">{chunk.content}</div>
                       </div>
                     </div>
                   ))}
+
                 </div>
               </div>
             ) : chunks.length > 0 ? (
@@ -383,22 +391,14 @@ export default function Home() {
                     <div className="mt-4 border border-zinc-600 rounded-lg p-4">
                       <div className="flex justify-between">
                         <div>
-                          <div className="font-bold text-xl">{chunk.essay_title}</div>
-                          <div className="mt-1 font-bold text-sm">{chunk.essay_date}</div>
+                          <div className="font-bold text-xl">Content</div> {/* Replace with appropriate title if available */}
                         </div>
-                        <a
-                          className="hover:opacity-50 ml-2"
-                          href={chunk.essay_url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <IconExternalLink />
-                        </a>
                       </div>
                       <div className="mt-2">{chunk.content}</div>
                     </div>
                   </div>
                 ))}
+
               </div>
             ) : (
               <div className="mt-6 text-center text-lg">{`AI-powered search & chat for Paul Graham's essays.`}</div>
