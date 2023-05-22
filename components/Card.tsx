@@ -1,24 +1,18 @@
 import React from 'react'
 
-import PropTypes from 'prop-types'
+// import PropTypes from 'prop-types'
 
-const AppComponent = (props:any) => {
+type AppComponentProps = {
+  rootClassName?: string,
+  text?: string,
+};
+
+
+const AppComponent: React.FC<AppComponentProps> = ({ rootClassName = '', text = '“can you tell me about your design services?” →' }) => {
   return (
     <>
-      <div style={{
-  flex: '0 0 auto',
-  width: '32%',
-  height: 'auto',
-  display: 'flex',
-  position: 'relative',
-  alignItems: 'flex-start',
-  borderColor: '#fbfbfb',
-  borderWidth: '1px',
-  borderRadius: 'var(--dl-radius-radius-radius8)',
-  justifyContent: 'center',
-  backgroundColor: 'rgba(110, 175, 217, 0.1)'
-}} className={`component-container ${props.rootClassName} `}>
-        <span className="component-text">{props.text}</span>
+      <div className={`component-container ${rootClassName} `}>
+        <span className="component-text">{text}</span>
       </div>
       <style jsx>
         {`
@@ -87,14 +81,14 @@ const AppComponent = (props:any) => {
   )
 }
 
-AppComponent.defaultProps = {
-  rootClassName: '',
-  text: '“can you tell me about your design services?” →',
-}
+// AppComponent.defaultProps = {
+//   rootClassName: '',
+//   text: '“can you tell me about your design services?” →',
+// }
 
-AppComponent.propTypes = {
-  rootClassName: PropTypes.string,
-  text: PropTypes.string,
-}
+// AppComponent.propTypes = {
+//   rootClassName: PropTypes.string,
+//   text: PropTypes.string,
+// }
 
 export default AppComponent
