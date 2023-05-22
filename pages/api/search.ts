@@ -1,18 +1,24 @@
+import { OpenAIApi } from 'openai';
 import { supabaseAdmin } from "@/utils";
 
 export const config = {
   runtime: "edge"
 };
 
+
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { query, apiKey, matches } = (await req.json()) as {
+    const { query, matches } = (await req.json()) as {
       query: string;
-      apiKey: string;
       matches: number;
     };
 
     const input = query.replace(/\n/g, " ");
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    if(!apiKey) {
+      throw new Error("Missing API Key");
+    }
 
     const res = await fetch("https://api.openai.com/v1/embeddings", {
       headers: {

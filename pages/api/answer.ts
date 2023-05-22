@@ -6,11 +6,17 @@ export const config = {
 
 const handler = async (req: Request): Promise<Response> => {
   try {
-    const { prompt, query, apiKey } = (await req.json()) as {
+    const { prompt, query } = (await req.json()) as {
       prompt: string;
       query: string;
-      apiKey: string;
     };
+
+    // fetch the apiKey from the environment variable
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    if(!apiKey) {
+      throw new Error("Missing API Key");
+    }
 
     const stream = await OpenAIStream(prompt, query, apiKey);
 
