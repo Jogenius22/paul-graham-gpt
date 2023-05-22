@@ -1,7 +1,7 @@
 import React from 'react'
 import AppComponent from './Card'
 
-const CardLayout = () => {
+const CardLayout = (props:any) => {
   return (
     <>
         <div className="componets-container">
