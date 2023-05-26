@@ -10,9 +10,7 @@
   margin: 0;
   font-family: "IBM Plex Sans Arabic", sans-serif;
 }
-html {
-  overflow-y: hidden !important;
-}
+
 ::-webkit-scrollbar-thumb {
   background: #0c0f16;
   background: linear-gradient(
