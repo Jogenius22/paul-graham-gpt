@@ -65,8 +65,8 @@ const docsgpt3_5Turbo = async () => {
   const rawDocs = await loader.load();
   
   const textSplitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 300,
-    chunkOverlap: 50,
+    chunkSize: 1000,
+    chunkOverlap: 200,
   });
   
   const pageContents = rawDocs.map(doc => doc.pageContent);

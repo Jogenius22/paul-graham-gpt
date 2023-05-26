@@ -1,18 +1,26 @@
-import React from 'react'
+import React from "react";
 
-// import PropTypes from 'prop-types'
-
-type AppComponentProps = {
-  rootClassName?: string,
-  text?: string,
+type ComponentProps = {
+  rootClassName?: string;
+  text?: string;
+  onTextClick?: (query: string) => void;
 };
 
-
-const AppComponent: React.FC<AppComponentProps> = ({ rootClassName = '', text = '“can you tell me about your design services?” →' }) => {
+const Component: React.FC<ComponentProps> = ({
+  rootClassName = "",
+  text = "“can you tell me about your design services?” →",
+  onTextClick,
+}) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onTextClick?.(text);
+  };
   return (
     <>
-      <div className={`component-container ${rootClassName} `}>
-        <span className="component-text">{text}</span>
+      <div className={`component-container ${rootClassName} bordercard`}>
+        <span className="component-text" onClick={handleClick}>
+          {text}
+        </span>
       </div>
       <style jsx>
         {`
@@ -23,13 +31,19 @@ const AppComponent: React.FC<AppComponentProps> = ({ rootClassName = '', text = 
             display: flex;
             position: relative;
             align-items: flex-start;
-            border-color: #fbfbfb !important;
-            border-width: 1px !important;
+            // border-color: var(--dl-color-gray-white);
+            // border-width: 1px;
             border-radius: var(--dl-radius-radius-radius8);
             justify-content: center;
-            background-color: rgba(110, 175, 217, 0.1) !important;
-            
+
+            background-color: #17262b;
+            border: 1px solid rgba(251, 251, 251, 0.3);
           }
+          // .bordercard {
+          //   border-color: #fbfbfb !important ;
+          //   border-width: 2px !important;
+          //   border-radius: var(--dl-radius-radius-radius8) !important;
+          // }
           .component-text {
             color: #ffffff;
             align-self: center;
@@ -51,9 +65,19 @@ const AppComponent: React.FC<AppComponentProps> = ({ rootClassName = '', text = 
 
           @media (max-width: 479px) {
             .component-container {
-              width: 80%;
+              width: 32%;
+            }
+            .component-text {
+              width: 100%;
+              font-size: 14px;
+              max-width: 100%;
+              padding-top: var(--dl-space-space-halfunit);
+              padding-left: var(--dl-space-space-halfunit);
+              padding-right: var(--dl-space-space-halfunit);
+              padding-bottom: var(--dl-space-space-halfunit);
             }
             .component-root-class-name {
+              max-width: 32%;
               margin-bottom: var(--dl-space-space-unit);
             }
             .component-root-class-name1 {
@@ -78,17 +102,7 @@ const AppComponent: React.FC<AppComponentProps> = ({ rootClassName = '', text = 
         `}
       </style>
     </>
-  )
-}
+  );
+};
 
-// AppComponent.defaultProps = {
-//   rootClassName: '',
-//   text: '“can you tell me about your design services?” →',
-// }
-
-// AppComponent.propTypes = {
-//   rootClassName: PropTypes.string,
-//   text: PropTypes.string,
-// }
-
-export default AppComponent
+export default Component;

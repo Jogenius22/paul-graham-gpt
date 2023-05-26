@@ -1,17 +1,28 @@
 import { OpenAIModel } from "@/types";
 import { createClient } from "@supabase/supabase-js";
-import { createParser, ParsedEvent, ReconnectInterval } from "eventsource-parser";
+import {
+  createParser,
+  ParsedEvent,
+  ReconnectInterval,
+} from "eventsource-parser";
 
-export const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+export const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-export const OpenAIStream = async (prompt: string, query: string, apiKey: string) => {
+export const OpenAIStream = async (
+  prompt: string,
+  query: string,
+  apiKey: string
+) => {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
+      Authorization: `Bearer ${apiKey}`,
     },
     method: "POST",
     body: JSON.stringify({
@@ -46,17 +57,17 @@ export const OpenAIStream = async (prompt: string, query: string, apiKey: string
           
           ${prompt}
           
-          NOTE:YOUR RESPONSES SHOULD ALWAYS BE IN THE LANGUAGE THE PROMPT IS IN .`
+          NOTE:YOUR RESPONSES SHOULD ALWAYS BE IN THE LANGUAGE THE PROMPT IS IN .`,
         },
         {
           role: "user",
-          content: query
-        }
+          content: query,
+        },
       ],
       max_tokens: 250,
-      temperature: 0.7,
-      stream: true
-    })
+      temperature: 0.0,
+      stream: true,
+    }),
   });
 
   if (res.status !== 200) {
@@ -90,7 +101,7 @@ export const OpenAIStream = async (prompt: string, query: string, apiKey: string
       for await (const chunk of res.body as any) {
         parser.feed(decoder.decode(chunk));
       }
-    }
+    },
   });
 
   return stream;
